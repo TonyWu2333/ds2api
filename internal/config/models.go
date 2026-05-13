@@ -89,10 +89,13 @@ func GetModelConfig(model string) (thinking bool, search bool, ok bool) {
 	if baseModel == "" {
 		return false, false, false
 	}
+	if strings.HasPrefix(baseModel, "deepseek-v4-pro") {
+		baseModel = "deepseek-v4-flash" + strings.TrimPrefix(baseModel, "deepseek-v4-pro")
+	}
 	switch baseModel {
-	case "deepseek-v4-flash", "deepseek-v4-pro", "deepseek-v4-vision":
+	case "deepseek-v4-flash", "deepseek-v4-vision":
 		return !noThinking, false, true
-	case "deepseek-v4-flash-search", "deepseek-v4-pro-search":
+	case "deepseek-v4-flash-search":
 		return !noThinking, true, true
 	default:
 		return false, false, false
@@ -101,11 +104,12 @@ func GetModelConfig(model string) (thinking bool, search bool, ok bool) {
 
 func GetModelType(model string) (modelType string, ok bool) {
 	baseModel, _ := splitNoThinkingModel(model)
+	if strings.HasPrefix(baseModel, "deepseek-v4-pro") {
+		baseModel = "deepseek-v4-flash" + strings.TrimPrefix(baseModel, "deepseek-v4-pro")
+	}
 	switch baseModel {
 	case "deepseek-v4-flash", "deepseek-v4-flash-search":
 		return "default", true
-	case "deepseek-v4-pro", "deepseek-v4-pro-search":
-		return "expert", true
 	case "deepseek-v4-vision":
 		return "vision", true
 	default:
@@ -234,6 +238,12 @@ func ResolveModel(store ModelAliasReader, requested string) (string, bool) {
 	}
 	aliases := loadModelAliases(store)
 	if IsSupportedDeepSeekModel(model) {
+		if strings.HasPrefix(model, "deepseek-v4-pro") {
+			if strings.HasSuffix(model, "-search") {
+				return "deepseek-v4-flash-search" + strings.TrimPrefix(model, "deepseek-v4-pro-search"), true
+			}
+			return "deepseek-v4-flash" + strings.TrimPrefix(model, "deepseek-v4-pro"), true
+		}
 		return model, true
 	}
 	if mapped, ok := aliases[model]; ok && IsSupportedDeepSeekModel(mapped) {
