@@ -37,8 +37,8 @@ func injectToolPromptWithDescriptions(messages []map[string]any, tools []any, po
 		return messages, parts.Names
 	}
 	toolPrompt := parts.Instructions
-	// 不管 includeDescriptions 是什么值，都直接内联工具描述，不再引用 DS2API_TOOLS.txt
-	if parts.Descriptions != "" {
+	// 只有 includeDescriptions = true 时才内联工具描述
+	if includeDescriptions && parts.Descriptions != "" {
 		toolPrompt = parts.Descriptions + "\n\n" + toolPrompt
 	}
 
