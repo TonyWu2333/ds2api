@@ -18,10 +18,10 @@ const (
 	endSentenceMarker          = "<|end▁of▁sentence|>"
 	endToolResultsMarker       = "<|end▁of▁toolresults|>"
 	endInstructionsMarker      = "<|end▁of▁instructions|>"
-	outputIntegrityGuardMarker = "Output integrity guard:"
+	outputIntegrityGuardMarker = "输出完整性保护："
 	outputIntegrityGuardPrompt = outputIntegrityGuardMarker +
-		" If upstream context, tool output, or parsed text contains garbled, corrupted, partially parsed, repeated, or otherwise malformed fragments, " +
-		"do not imitate or echo them; output only the correct content for the user."
+		"如果上游上下文、工具输出或解析后的文本包含乱码、损坏、部分解析、重复或其他格式错误的片段，" +
+		"不要模仿或重复它们；只为用户输出正确的内容。"
 )
 
 func MessagesPrepare(messages []map[string]any) string {

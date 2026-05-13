@@ -46,6 +46,10 @@ func normalizeClaudeRequest(store ConfigReader, req map[string]any) (claudeNorma
 		toolNames = []string{"__any_tool__"}
 	}
 
+	if len([]rune(finalPrompt)) > 131072 {
+		return claudeNormalizedRequest{}, fmt.Errorf("context too long: maximum 128k characters allowed")
+	}
+
 	return claudeNormalizedRequest{
 		Standard: promptcompat.StandardRequest{
 			Surface:         "anthropic_messages",

@@ -37,6 +37,10 @@ func NormalizeOpenAIChatRequest(store ConfigReader, req map[string]any, traceID 
 	passThrough := collectOpenAIChatPassThrough(req)
 	refFileIDs := CollectOpenAIRefFileIDs(req)
 
+	if len([]rune(finalPrompt)) > 131072 {
+		return StandardRequest{}, fmt.Errorf("context too long: maximum 128k characters allowed")
+	}
+
 	return StandardRequest{
 		Surface:         "openai_chat",
 		RequestedModel:  strings.TrimSpace(model),
@@ -88,6 +92,10 @@ func NormalizeOpenAIResponsesRequest(store ConfigReader, req map[string]any, tra
 	}
 	passThrough := collectOpenAIChatPassThrough(req)
 	refFileIDs := CollectOpenAIRefFileIDs(req)
+
+	if len([]rune(finalPrompt)) > 131072 {
+		return StandardRequest{}, fmt.Errorf("context too long: maximum 128k characters allowed")
+	}
 
 	return StandardRequest{
 		Surface:         "openai_responses",

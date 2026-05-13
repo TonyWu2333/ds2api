@@ -89,20 +89,17 @@ func (s Service) ApplyCurrentInputFile(ctx context.Context, a *auth.RequestAuth,
 		}
 	}
 
-	messages := []any{
-		map[string]any{
-			"role":    "user",
-			"content": currentInputFilePrompt(toolFileID != ""),
-		},
-	}
-
-	stdReq.Messages = messages
 	stdReq.HistoryText = fileText
 	stdReq.CurrentInputFileApplied = true
 	stdReq.CurrentInputFileID = fileID
 	stdReq.CurrentToolsFileID = toolFileID
 	stdReq.RefFileIDs = prependUniqueRefFileIDs(stdReq.RefFileIDs, fileID, toolFileID)
-	stdReq.FinalPrompt, stdReq.ToolNames = promptcompat.BuildOpenAIPromptWithToolInstructionsOnly(messages, stdReq.ToolsRaw, "", stdReq.ToolChoice, stdReq.Thinking)
+
+	// 只保留最后一条用户消息（当前请求），其他所有历史消息都放在txt文件里
+	trimmedMessages := make([]any, 0, 1)
+	trimmedMessages = append(trimmedMessages, stdReq.Messages[index])
+	filePrompt := currentInputFilePrompt(fileID, toolFileID)
+	stdReq.FinalPrompt, stdReq.ToolNames = promptcompat.BuildOpenAIPromptWithToolInstructionsOnly(trimmedMessages, stdReq.ToolsRaw, filePrompt, stdReq.ToolChoice, stdReq.Thinking)
 	// Token accounting must reflect the actual downstream context:
 	// uploaded context files + the continuation live prompt.
 	tokenParts := []string{fileText}
@@ -185,12 +182,20 @@ func latestUserInputForFile(messages []any) (int, string) {
 	return -1, ""
 }
 
-func currentInputFilePrompt(hasToolsFile bool) string {
-	prompt := "Continue from the latest state in the attached DS2API_HISTORY.txt context. Treat it as the current working state and answer the latest user request directly."
-	if hasToolsFile {
-		prompt += " Available tool descriptions and parameter schemas are attached in DS2API_TOOLS.txt; use only those tools and follow the tool-call format rules in this prompt."
+
+
+func currentInputFilePrompt(historyFileID, toolsFileID string) string {
+	var parts []string
+	if historyFileID != "" {
+		parts = append(parts, fmt.Sprintf("请查看附件《历史记录.txt》了解完整对话历史。"))
 	}
-	return prompt
+	if toolsFileID != "" {
+		parts = append(parts, fmt.Sprintf("请查看附件《工具描述.txt》了解可用工具。"))
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return strings.Join(parts, "\n")
 }
 
 func prependUniqueRefFileIDs(existing []string, fileIDs ...string) []string {

@@ -3,10 +3,10 @@ package promptcompat
 import "strings"
 
 const (
-	ThinkingInjectionMarker        = "Reasoning Effort: Absolute maximum with no shortcuts permitted."
+	ThinkingInjectionMarker        = "推理努力：不允许任何捷径，必须全力以赴。"
 	DefaultThinkingInjectionPrompt = ThinkingInjectionMarker + "\n" +
-		"You MUST be very thorough in your thinking and comprehensively decompose the problem to resolve the root cause, rigorously stress-testing your logic against all potential paths, edge cases, and adversarial scenarios.\n" +
-		"Explicitly write out your entire deliberation process, documenting every intermediate step, considered alternative, and rejected hypothesis to ensure absolutely no assumption is left unchecked."
+		"你必须进行非常深入的思考，全面分解问题以解决根本原因，针对所有可能的路径、边界情况和对抗性场景严格检验你的逻辑。\n" +
+		"明确写出你的整个思考过程，记录每一个中间步骤、考虑过的替代方案和被拒绝的假设，确保绝对没有未被检验的假设。"
 )
 
 func AppendThinkingInjectionToLatestUser(messages []any) ([]any, bool) {

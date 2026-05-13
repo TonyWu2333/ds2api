@@ -38,6 +38,10 @@ func normalizeGeminiRequest(store ConfigReader, routeModel string, req map[strin
 	}
 	passThrough := collectGeminiPassThrough(req)
 
+	if len([]rune(finalPrompt)) > 131072 {
+		return promptcompat.StandardRequest{}, fmt.Errorf("context too long: maximum 128k characters allowed")
+	}
+
 	return promptcompat.StandardRequest{
 		Surface:         "google_gemini",
 		RequestedModel:  requestedModel,

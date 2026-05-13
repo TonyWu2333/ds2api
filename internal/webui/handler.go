@@ -12,9 +12,20 @@ import (
 )
 
 const welcomeHTML = `<!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>DS2API</title>
-<style>body{font-family:Inter,system-ui,sans-serif;background:#030712;color:#f9fafb;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0}a{color:#f59e0b;text-decoration:none}main{max-width:700px;padding:24px;text-align:center}h1{font-size:48px;margin:0 0 12px}.links{display:flex;gap:16px;justify-content:center;margin-top:20px;flex-wrap:wrap}</style>
-</head><body><main><h1>DS2API</h1><p>DeepSeek to OpenAI & Claude Compatible API</p><div class="links"><a href="/admin">管理面板</a><a href="/v1/models">API 状态</a><a href="https://github.com/CJackHwang/ds2api" target="_blank">GitHub</a></div></main></body></html>`
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>tokeninf</title>
+<style>
+body{font-family:Inter,system-ui,sans-serif;background:#030712;color:#f9fafb;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0}
+main{max-width:600px;padding:24px;text-align:center}
+h1{font-size:48px;margin:0 0 12px}
+.status-card{background:#111827;border:1px solid #374151;border-radius:12px;padding:24px;margin-top:24px}
+.status-indicator{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:8px}
+.status-online{background:#22c55e}
+.status-offline{background:#ef4444}
+.status-text{font-size:18px;font-weight:600}
+.api-link{display:block;margin-top:20px;color:#f59e0b;text-decoration:none;font-size:16px}
+.api-link:hover{text-decoration:underline}
+</style>
+</head><body><main><h1>tokeninf</h1><div class="status-card"><span class="status-indicator status-online"></span><span class="status-text">API 运行正常</span></div><a href="/v1/models" class="api-link">查看可用模型</a></main></body></html>`
 
 type Handler struct {
 	StaticDir string
@@ -47,12 +58,7 @@ func (h *Handler) index(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (h *Handler) admin(w http.ResponseWriter, r *http.Request) {
-	staticDir := resolveStaticAdminDir(h.StaticDir)
-	if fi, err := os.Stat(staticDir); err == nil && fi.IsDir() {
-		h.serveFromDisk(w, r, staticDir)
-		return
-	}
-	http.Error(w, "WebUI not built. Run `cd webui && npm run build` first.", http.StatusNotFound)
+	h.index(w, r)
 }
 
 // staticContentTypes pins the Content-Type of common WebUI assets so we do not

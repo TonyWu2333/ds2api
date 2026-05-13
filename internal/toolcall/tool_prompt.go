@@ -9,57 +9,57 @@ import "strings"
 // The toolNames slice should contain the actual tool names available in the
 // current request; the function picks real names for examples.
 func BuildToolCallInstructions(toolNames []string) string {
-	return `TOOL CALL FORMAT — FOLLOW EXACTLY:
+	return `工具调用格式 — 严格遵守：
 
 <|DSML|tool_calls>
-  <|DSML|invoke name="TOOL_NAME_HERE">
-    <|DSML|parameter name="PARAMETER_NAME"><![CDATA[PARAMETER_VALUE]]></|DSML|parameter>
+  <|DSML|invoke name="工具名称在这里">
+    <|DSML|parameter name="参数名称"><![CDATA[参数值]]></|DSML|parameter>
   </|DSML|invoke>
 </|DSML|tool_calls>
 
-RULES:
-1) Use the <|DSML|tool_calls> wrapper format.
-2) Put one or more <|DSML|invoke> entries under a single <|DSML|tool_calls> root.
-3) Put the tool name in the invoke name attribute: <|DSML|invoke name="TOOL_NAME">.
-3a) Tag punctuation alphabet: ASCII < > / = " plus the halfwidth pipe |.
-4) All string values must use <![CDATA[...]]>, even short ones. This includes code, scripts, file contents, prompts, paths, names, and queries.
-5) Every top-level argument must be a <|DSML|parameter name="ARG_NAME">...</|DSML|parameter> node.
-6) Objects use nested XML elements inside the parameter body. Arrays may repeat <item> children.
-7) Numbers, booleans, and null stay plain text.
-8) Use only the parameter names in the tool schema. Do not invent fields.
-9) Fill parameters with the actual values required for this call. Do not emit placeholder, blank, or whitespace-only parameters.
-10) If a required parameter value is unknown, ask the user or answer normally instead of outputting an empty tool call.
-11) For shell tools such as Bash / execute_command, the command/script must be inside the command parameter. Never call them with an empty command.
-12) Do NOT wrap XML in markdown fences. Do NOT output explanations, role markers, or internal monologue.
-13) If you call a tool, the first non-whitespace characters of that tool block must be exactly <|DSML|tool_calls>.
-14) Never omit the opening <|DSML|tool_calls> tag, even if you already plan to close with </|DSML|tool_calls>.
-15) Compatibility note: the runtime also accepts the legacy XML tags <tool_calls> / <invoke> / <parameter>, but prefer the DSML-prefixed form above.
+规则：
+1) 使用 <|DSML|tool_calls> 包装格式。
+2) 在单个 <|DSML|tool_calls> 根标签下放置一个或多个 <|DSML|invoke> 条目。
+3) 将工具名称放在 invoke 的 name 属性中：<|DSML|invoke name="工具名称">。
+3a) 标签标点字符集：ASCII < > / = " 加上半角竖线 |。
+4) 所有字符串值必须使用 <![CDATA[...]]>，即使是短的值。这包括代码、脚本、文件内容、提示词、路径、名称和查询。
+5) 每个顶层参数必须是 <|DSML|parameter name="参数名称">...</|DSML|parameter> 节点。
+6) 对象在参数体内使用嵌套的 XML 元素。数组可以重复 <item> 子元素。
+7) 数字、布尔值和 null 保持纯文本。
+8) 只使用工具架构中的参数名称。不要发明字段。
+9) 用此调用所需的实际值填充参数。不要输出占位符、空白或仅包含空格的参数。
+10) 如果必填参数值未知，询问用户或正常回答，而不是输出空的工具调用。
+11) 对于 Bash / execute_command 等 shell 工具，命令/脚本必须在 command 参数内。永远不要用空命令调用它们。
+12) 不要将 XML 包装在 Markdown 代码块中。不要输出解释、角色标记或内心独白。
+13) 如果你调用工具，该工具块的第一个非空白字符必须恰好是 <|DSML|tool_calls>。
+14) 永远不要省略开头的 <|DSML|tool_calls> 标签，即使你已经计划用 </|DSML|tool_calls> 关闭。
+15) 兼容性说明：运行时也接受传统的 XML 标签 <tool_calls> / <invoke> / <parameter>，但更喜欢上面带有 DSML 前缀的形式。
 
-PARAMETER SHAPES:
-- string => <|DSML|parameter name="x"><![CDATA[value]]></|DSML|parameter>
+参数形状：
+- string => <|DSML|parameter name="x"><![CDATA[值]]></|DSML|parameter>
 - object => <|DSML|parameter name="x"><field>...</field></|DSML|parameter>
 - array => <|DSML|parameter name="x"><item>...</item><item>...</item></|DSML|parameter>
-- number/bool/null => <|DSML|parameter name="x">plain_text</|DSML|parameter>
+- number/bool/null => <|DSML|parameter name="x">纯文本</|DSML|parameter>
 
-【WRONG — Do NOT do these】:
+【错误示例 — 不要这样做】:
 
-Wrong 1 — mixed text after XML:
-  <|DSML|tool_calls>...</|DSML|tool_calls> I hope this helps.
-Wrong 2 — Markdown code fences:
+错误 1 — XML 后混合文本：
+  <|DSML|tool_calls>...</|DSML|tool_calls> 希望这有帮助。
+错误 2 — Markdown 代码块：
   ` + "```xml" + `
   <|DSML|tool_calls>...</|DSML|tool_calls>
   ` + "```" + `
-Wrong 3 — missing opening wrapper:
-  <|DSML|invoke name="TOOL_NAME">...</|DSML|invoke>
+错误 3 — 缺少开头包装：
+  <|DSML|invoke name="工具名称">...</|DSML|invoke>
   </|DSML|tool_calls>
-Wrong 4 — empty parameters:
+错误 4 — 空参数：
   <|DSML|tool_calls>
     <|DSML|invoke name="Bash">
       <|DSML|parameter name="command"></|DSML|parameter>
     </|DSML|invoke>
   </|DSML|tool_calls>
 
-Remember: The ONLY valid way to use tools is the <|DSML|tool_calls>...</|DSML|tool_calls> block at the end of your response.
+记住：使用工具的唯一有效方法是在响应末尾使用 <|DSML|tool_calls>...</|DSML|tool_calls> 块。
 ` + buildCorrectToolExamples(toolNames)
 }
 
@@ -73,25 +73,25 @@ func buildCorrectToolExamples(toolNames []string) string {
 	examples := make([]string, 0, 4)
 
 	if single, ok := firstBasicExample(names); ok {
-		examples = append(examples, "Example A — Single tool:\n"+renderToolExampleBlock([]promptToolExample{single}))
+		examples = append(examples, "示例 A — 单个工具：\n"+renderToolExampleBlock([]promptToolExample{single}))
 	}
 
 	if parallel := firstNBasicExamples(names, 2); len(parallel) >= 2 {
-		examples = append(examples, "Example B — Two tools in parallel:\n"+renderToolExampleBlock(parallel))
+		examples = append(examples, "示例 B — 两个并行工具：\n"+renderToolExampleBlock(parallel))
 	}
 
 	if nested, ok := firstNestedExample(names); ok {
-		examples = append(examples, "Example C — Tool with nested XML parameters:\n"+renderToolExampleBlock([]promptToolExample{nested}))
+		examples = append(examples, "示例 C — 带有嵌套 XML 参数的工具：\n"+renderToolExampleBlock([]promptToolExample{nested}))
 	}
 
 	if script, ok := firstScriptExample(names); ok {
-		examples = append(examples, "Example D — Tool with long script using CDATA (RELIABLE FOR CODE/SCRIPTS):\n"+renderToolExampleBlock([]promptToolExample{script}))
+		examples = append(examples, "示例 D — 使用 CDATA 的长脚本工具（代码/脚本的可靠方式）：\n"+renderToolExampleBlock([]promptToolExample{script}))
 	}
 
 	if len(examples) == 0 {
 		return ""
 	}
-	return "【CORRECT EXAMPLES】:\n\n" + strings.Join(examples, "\n\n") + "\n\n"
+	return "【正确示例】：\n\n" + strings.Join(examples, "\n\n") + "\n\n"
 }
 
 func uniqueToolNames(toolNames []string) []string {

@@ -9,10 +9,10 @@ import (
 	"ds2api/internal/toolcall"
 )
 
-const CurrentToolsContextFilename = "DS2API_TOOLS.txt"
+const CurrentToolsContextFilename = "工具描述.txt"
 
-const toolsTranscriptTitle = "# DS2API_TOOLS.txt"
-const toolsTranscriptSummary = "Available tool descriptions and parameter schemas for this request."
+const toolsTranscriptTitle = "# 工具描述.txt"
+const toolsTranscriptSummary = "此请求可用的工具描述和参数架构。"
 
 type toolPromptParts struct {
 	Descriptions string
@@ -37,10 +37,9 @@ func injectToolPromptWithDescriptions(messages []map[string]any, tools []any, po
 		return messages, parts.Names
 	}
 	toolPrompt := parts.Instructions
-	if includeDescriptions && parts.Descriptions != "" {
+	// 不管 includeDescriptions 是什么值，都直接内联工具描述，不再引用 DS2API_TOOLS.txt
+	if parts.Descriptions != "" {
 		toolPrompt = parts.Descriptions + "\n\n" + toolPrompt
-	} else if !includeDescriptions && parts.Descriptions != "" {
-		toolPrompt = "Available tool descriptions and parameter schemas are attached in DS2API_TOOLS.txt. Treat DS2API_TOOLS.txt as the authoritative list of callable tools and schemas; use only tools and parameters listed there.\n\n" + toolPrompt
 	}
 
 	for i := range messages {
@@ -80,25 +79,25 @@ func buildToolPromptParts(tools []any, policy ToolChoicePolicy) toolPromptParts 
 		}
 		names = append(names, name)
 		if desc == "" {
-			desc = "No description available"
+			desc = "没有可用描述"
 		}
 		b, _ := json.Marshal(schema)
-		toolSchemas = append(toolSchemas, fmt.Sprintf("Tool: %s\nDescription: %s\nParameters: %s", name, desc, string(b)))
+		toolSchemas = append(toolSchemas, fmt.Sprintf("工具：%s\n描述：%s\n参数：%s", name, desc, string(b)))
 	}
 	if len(toolSchemas) == 0 {
 		return toolPromptParts{Names: names}
 	}
-	descriptions := "You have access to these tools:\n\n" + strings.Join(toolSchemas, "\n\n")
+	descriptions := "你可以使用这些工具：\n\n" + strings.Join(toolSchemas, "\n\n")
 	instructions := toolcall.BuildToolCallInstructions(names)
 	if hasReadLikeTool(names) {
-		instructions += "\n\nRead-tool cache guard: If a Read/read_file-style tool result says the file is unchanged, already available in history, should be referenced from previous context, or otherwise provides no file body, treat that result as missing content. Do not repeatedly call the same read request for that missing body. Request a full-content read if the tool supports it, or tell the user that the file contents need to be provided again."
+		instructions += "\n\n读取工具缓存保护：如果 Read/read_file 类工具的结果说文件未更改、已在历史记录中可用、应从先前上下文中引用，或者以其他方式没有提供文件体，请将该结果视为缺失内容。不要为该缺失体重复调用相同的读取请求。如果工具支持，请求完整内容读取，或者告诉用户需要重新提供文件内容。"
 	}
 	if policy.Mode == ToolChoiceRequired {
-		instructions += "\n7) For this response, you MUST call at least one tool from the allowed list."
+		instructions += "\n7) 对于此响应，你必须至少调用允许列表中的一个工具。"
 	}
 	if policy.Mode == ToolChoiceForced && strings.TrimSpace(policy.ForcedName) != "" {
-		instructions += "\n7) For this response, you MUST call exactly this tool name: " + strings.TrimSpace(policy.ForcedName)
-		instructions += "\n8) Do not call any other tool."
+		instructions += "\n7) 对于此响应，你必须恰好调用这个工具名称：" + strings.TrimSpace(policy.ForcedName)
+		instructions += "\n8) 不要调用任何其他工具。"
 	}
 	return toolPromptParts{
 		Descriptions: descriptions,

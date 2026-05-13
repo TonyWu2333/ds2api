@@ -14,7 +14,6 @@ import (
 	"ds2api/internal/auth"
 	"ds2api/internal/config"
 	"ds2api/internal/server"
-	"ds2api/internal/webui"
 )
 
 func main() {
@@ -22,7 +21,6 @@ func main() {
 		config.Logger.Warn("[dotenv] load failed", "error", err)
 	}
 	config.RefreshLogger()
-	webui.EnsureBuiltOnStartup()
 	_ = auth.AdminKey()
 	app, err := server.NewApp()
 	if err != nil {
