@@ -10,14 +10,14 @@ import (
 var markdownImagePattern = regexp.MustCompile(`!\[(.*?)\]\((.*?)\)`)
 
 const (
-	beginSentenceMarker        = "<|begin▁of▁sentence|>"
-	systemMarker               = "<|System|>"
-	userMarker                 = "<|User|>"
-	assistantMarker            = "<|Assistant|>"
-	toolMarker                 = "<|Tool|>"
-	endSentenceMarker          = "<|end▁of▁sentence|>"
-	endToolResultsMarker       = "<|end▁of▁toolresults|>"
-	endInstructionsMarker      = "<|end▁of▁instructions|>"
+	beginSentenceMarker        = "[句子开始]"
+	systemMarker               = "[系统]"
+	userMarker                 = "[用户]"
+	assistantMarker            = "[助手]"
+	toolMarker                 = "[工具]"
+	endSentenceMarker          = "[句子结束]"
+	endToolResultsMarker       = "[工具结果结束]"
+	endInstructionsMarker      = "[指令结束]"
 	outputIntegrityGuardMarker = "输出完整性保护："
 	outputIntegrityGuardPrompt = outputIntegrityGuardMarker +
 		"如果上游上下文、工具输出或解析后的文本包含乱码、损坏、部分解析、重复或其他格式错误的片段，" +
